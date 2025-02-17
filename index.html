@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .calculator {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select, input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+        .result {
+            background-color: #e9f7ef;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h2>Calculadora de Incentivos</h2>
+        
+        <div class="form-group">
+            <label>EBITDA (%):</label>
+            <select id="ebitda">
+                <option value="">Seleccionar porcentaje</option>
+            </select>
+            <div class="result">
+                Puntos base: <span id="ebitdaResult">-</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Evaluación de desempeño individual:</label>
+            <select id="performance">
+                <option value="">Seleccionar evaluación</option>
+                <option value="no_aplica">No aplica</option>
+                <option value="parcial">Cumple parcialmente</option>
+                <option value="cumple">Cumple</option>
+                <option value="excede">Excede</option>
+            </select>
+            <div class="result">
+                Puntos: <span id="performanceResult">-</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Metas grupales:</label>
+            <select id="groupGoals">
+                <option value="">Seleccionar meta</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+            </select>
+            <div class="result">
+                Puntos: <span id="groupResult">-</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Total de puntos ganados trimestral:</label>
+            <div class="result">
+                <span id="totalPoints">-</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Sueldo:</label>
+            <input type="number" id="salary" placeholder="Ingrese el sueldo">
+        </div>
+
+        <div class="form-group">
+            <label>Incentivo final:</label>
+            <div class="result">
+                <span id="finalIncentive">-</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // EBITDA percentages and their corresponding base points
+        const ebitdaData = {
+            '80': 0.75, '81': 1.03, '82': 1.32, '83': 1.62, '84': 1.94,
+            '85': 2.28, '86': 2.63, '87': 3.01, '88': 3.40, '89': 3.81,
+            '90': 4.24, '91': 4.70, '92': 5.18, '93': 5.68, '94': 6.21,
+            '95': 6.76, '96': 7.35, '97': 7.96, '98': 8.61, '99': 9.29,
+            '100': 10.00, '101': 10.50, '102': 11.00, '103': 11.50,
+            '104': 12.00, '105': 12.50, '106': 13.00, '107': 13.50,
+            '108': 14.00, '109': 14.50, '110': 15.00, '111': 15.50,
+            '112': 16.00, '113': 16.50, '114': 17.00, '115': 17.50,
+            '116': 18.00, '117': 18.50, '118': 19.00, '119': 19.50,
+            '120': 20.00
+        };
+
+        // Populate EBITDA dropdown
+        const ebitdaSelect = document.getElementById('ebitda');
+        Object.keys(ebitdaData).forEach(percentage => {
+            const option = document.createElement('option');
+            option.value = percentage;
+            option.textContent = `${percentage}%`;
+            ebitdaSelect.appendChild(option);
+        });
+
+        // Performance evaluation points
+        const performancePoints = {
+            'no_aplica': 0,
+            'parcial': -3,
+            'cumple': 0,
+            'excede': 3
+        };
+
+        // Group goals points
+        const groupGoalsPoints = {
+            '0': 0,
+            '1': -5,
+            '2': 2,
+            '3': 5
+        };
+
+        function calculateTotalPoints() {
+            const ebitdaValue = ebitdaSelect.value ? ebitdaData[ebitdaSelect.value] : 0;
+            const performanceValue = document.getElementById('performance').value ? 
+                performancePoints[document.getElementById('performance').value] : 0;
+            const groupValue = document.getElementById('groupGoals').value ? 
+                groupGoalsPoints[document.getElementById('groupGoals').value] : 0;
+
+            document.getElementById('ebitdaResult').textContent = 
+                ebitdaSelect.value ? `${ebitdaData[ebitdaSelect.value]}%` : '-';
+            document.getElementById('performanceResult').textContent = 
+                document.getElementById('performance').value ? performancePoints[document.getElementById('performance').value] : '-';
+            document.getElementById('groupResult').textContent = 
+                document.getElementById('groupGoals').value ? groupGoalsPoints[document.getElementById('groupGoals').value] : '-';
+
+            const total = ebitdaValue + performanceValue + groupValue;
+            document.getElementById('totalPoints').textContent = 
+                (ebitdaSelect.value && document.getElementById('performance').value && document.getElementById('groupGoals').value) ? 
+                total.toFixed(2) : '-';
+
+            calculateIncentive(total);
+        }
+
+        function calculateIncentive(points) {
+            const salary = document.getElementById('salary').value;
+            if (salary && points !== 0) {
+                const incentive = (points * 3 / 100) * salary;
+                document.getElementById('finalIncentive').textContent = 
+                    `$${incentive.toFixed(2)}`;
+            } else {
+                document.getElementById('finalIncentive').textContent = '-';
+            }
+        }
+
+        // Add event listeners
+        document.getElementById('ebitda').addEventListener('change', calculateTotalPoints);
+        document.getElementById('performance').addEventListener('change', calculateTotalPoints);
+        document.getElementById('groupGoals').addEventListener('change', calculateTotalPoints);
+        document.getElementById('salary').addEventListener('input', calculateTotalPoints);
+    </script>
+</body>
+</html>
